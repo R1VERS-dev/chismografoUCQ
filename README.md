@@ -34,6 +34,7 @@ Agrega un nuevo libro al inventario.
 ```json
 
 {
+  "id": 7,
   "title": "Fahrenheit 451",
   "author": "Ray Bradbury",
   "quantity": 4
@@ -41,7 +42,7 @@ Agrega un nuevo libro al inventario.
 
 ```
 
-#### DELETE /books/:id
+### DELETE /books/:id
 Elimina un libro por su ID.
 
 Ejemplo:
@@ -51,7 +52,7 @@ DELETE /books/3
 
 ```
 
-#### GET /quote/:id
+### GET /quote/:id
 Obtiene una cita famosa del autor del libro con el ID especificado.
 Este endpoint consume una API externa para obtener la frase.
 
@@ -72,7 +73,7 @@ Respuesta de ejemplo:
 
 ```
 
-#### PUT /checkout/:id
+### PUT /checkout/:id
 Marca el libro con el ID dado como prestado (reduce la cantidad disponible en 1).
 
 Ejemplo:
@@ -82,7 +83,7 @@ PUT /checkout/1
 
 ```
 
-#### PUT /return/:id
+### PUT /return/:id
 Marca el libro con el ID dado como prestado (reduce la cantidad disponible en 1).
 
 Ejemplo:
