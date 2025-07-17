@@ -1,6 +1,6 @@
 # 🌄 API de Lugares Turísticos de Querétaro
 
-> Una API web construida con **FastAPI** y **Supabase** para consultar y administrar lugares turísticos en Querétaro, México.
+> Una API web construida con **FastAPI**, **Supabase** y **OpenWeatherMap**, que además se expone públicamente vía túnel ngrok.
 
 ---
 
@@ -12,6 +12,9 @@
 [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square\&logo=supabase\&logoColor=white)]()
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-FF0000?style=flat-square\&logo=sqlalchemy\&logoColor=white)]()
 [![Pydantic](https://img.shields.io/badge/Pydantic-00BFFF?style=flat-square\&logo=pydantic\&logoColor=white)]()
+[![Httpx](https://img.shields.io/badge/HTTPX-000?style=flat-square\&logo=httpx)]()
+[![Python-dotenv](https://img.shields.io/badge/python--dotenv-4EA44F?style=flat-square\&logo=python-dotenv)]()
+[![Pyngrok](https://img.shields.io/badge/pyngrok-000?style=flat-square\&logo=ngrok)]()
 
 ---
 
@@ -19,12 +22,14 @@
 
 ```bash
 queretaro/
-├── .env               # Variables de entorno (cadena de conexión a Supabase)
+├── .env               # Variables de entorno (conexión DB, claves externas)
 ├── database.py        # Configuración del engine de SQLAlchemy
-├── models.py          # Modelos de datos SQLAlchemy (tablas)
-├── schemas.py         # Esquemas Pydantic (validación de datos)
+├── models.py          # Modelos de datos SQLAlchemy (tabla `lugares`)
+├── schemas.py         # Esquemas Pydantic para validación
 ├── crud.py            # Funciones CRUD para la base de datos
-└── main.py            # Aplicación FastAPI y definición de endpoints
+├── main.py            # App FastAPI: endpoints CRUD + clima
+├── tunnel.py          # Script para exponer vía ngrok usando pyngrok
+└── venv/              # Entorno virtual
 ```
 
 ---
@@ -42,67 +47,110 @@ queretaro/
 
    ```bash
    python -m venv venv
-   # En Windows:
+   # Windows:
    venv\Scripts\activate
    ```
 
 3. **Instalar dependencias**
 
    ```bash
-   pip install fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv
+   pip install fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv httpx pyngrok
    ```
 
 4. **Configurar variables de entorno**
-   Crea un archivo `.env` con el siguiente contenido:
 
-   ```env
-   DATABASE_URL=postgresql://postgres:TU_PASSWORD@db.obmtljdwxfyayiolixis.supabase.co:5432/postgres
-   ```
+   * Crear un archivo `.env` en la raíz con:
 
-5. **Ejecutar servidor**
+     ```env
+     # Supabase (Session Pooler)
+     DATABASE_URL=postgresql://postgres:Diplomado23@aws-0-us-east-2.pooler.supabase.com:5432/postgres
+
+     # Clave gratuita de OpenWeatherMap
+     WEATHER_API_KEY=40bc3d00ee3ba35943072e3b0d4bb617
+
+     # Token ngrok (para túnel público)
+     NGROK_AUTH_TOKEN=301B2E15ws12vu4CqBzvuUjGgSM_Q53JdehzQQS97KxiLyLW
+     ```
+
+5. **Levantar la API local**
 
    ```bash
    uvicorn main:app --reload
    ```
 
-* **URL base:** `http://127.0.0.1:8000`
-* **Documentación automática:** `http://127.0.0.1:8000/docs`
+   * URL base: `http://127.0.0.1:8000`
+   * Documentación: `http://127.0.0.1:8000/docs`
+
+6. **Exponer vía ngrok** (en otra terminal)
+
+   ```bash
+   python tunnel.py
+   ```
+
+   * Obtendrás una URL `https://xxxxx.ngrok-free.app` que redirige a tu `localhost:8000`.
 
 ---
 
-## 📌 Endpoints
+## 📌 Endpoints Disponibles
 
-| Método | Ruta            | Descripción                   |
-| ------ | --------------- | ----------------------------- |
-| GET    | `/lugares/`     | Obtener todos los lugares     |
-| POST   | `/lugares/`     | Crear un nuevo lugar          |
-| GET    | `/lugares/{id}` | Obtener un lugar por ID       |
-| PUT    | `/lugares/{id}` | Actualizar un lugar existente |
-| DELETE | `/lugares/{id}` | Eliminar un lugar por ID      |
+| Método | Ruta                  | Descripción                           |
+| ------ | --------------------- | ------------------------------------- |
+| GET    | `/`                   | Ruta raíz: mensaje de bienvenida      |
+| GET    | `/lugares`            | Listar todos los lugares              |
+| POST   | `/lugares`            | Crear un nuevo lugar                  |
+| GET    | `/lugares/{id}`       | Obtener un lugar por ID               |
+| PUT    | `/lugares/{id}`       | Actualizar un lugar existente         |
+| DELETE | `/lugares/{id}`       | Eliminar un lugar por ID              |
+| GET    | `/lugares/{id}/clima` | Obtener clima actual (OpenWeatherMap) |
+
+---
+
+## 🔄 Integración con OpenWeatherMap
+
+Al llamar a `/lugares/{id}/clima`, tu API:
+
+1. Lee `ubicacion` desde Supabase (campo String como `"Bernal, Querétaro"`).
+2. Extrae la parte antes de la coma y añade `,MX` → `"Bernal,MX"`.
+3. Llama a `https://api.openweathermap.org/data/2.5/weather` con:
+
+   * `q=Bernal,MX`
+   * `units=metric`
+   * `appid=$WEATHER_API_KEY`
+4. Devuelve JSON:
+
+   ```json
+   {
+     "lugar": "Peña de Bernal",
+     "temperatura": 23.5,
+     "descripcion": "clear sky"
+   }
+   ```
 
 ---
 
 ## 🛠️ Descripción de Archivos
 
-| Archivo         | Función                                                      |
-| --------------- | ------------------------------------------------------------ |
-| **.env**        | Variables de entorno (credenciales y URLs seguras)           |
-| **database.py** | Inicializa el engine de SQLAlchemy con Supabase              |
-| **models.py**   | Define la estructura de la tabla `lugares`                   |
-| **schemas.py**  | Esquemas Pydantic para validación de datos                   |
-| **crud.py**     | Funciones de “Create, Read, Update, Delete”                  |
-| **main.py**     | Crea la app de FastAPI, registra rutas y arranca el servidor |
+| Archivo         | Función                                                     |
+| --------------- | ----------------------------------------------------------- |
+| **.env**        | Variables sensibles: conexión DB, claves externas, ngrok    |
+| **database.py** | Inicializa engine y sesión de SQLAlchemy                    |
+| **models.py**   | Define tabla `lugares` con columnas (incluye `ubicacion`)   |
+| **schemas.py**  | Modelos Pydantic para validación de peticiones y respuestas |
+| **crud.py**     | CRUD básico para `lugares`                                  |
+| **main.py**     | FastAPI: CRUD + endpoint `/clima`                           |
+| **tunnel.py**   | Script con pyngrok para exponer la API                      |
 
 ---
 
+## 🧪 Pruebas y Uso
 
+* **Swagger UI**: `/docs`
+* **Postman / HTTP client**:
 
-## 🧪 Pruebas
-
-Puedes usar:
-
-* **Postman**
-* **FastAPI Swagger** (`/docs`)
+  ```bash
+  curl http://127.0.0.1:8000/lugares/1/clima
+  curl https://xxxxx.ngrok-free.app/lugares/1/clima
+  ```
 
 ---
 
