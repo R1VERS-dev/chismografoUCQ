@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 # Cargar las variables del archivo .env
 load_dotenv()
 
+
 # Leer la URL de la base de datos
 DATABASE_URL = os.getenv("DATABASE_URL")
 
