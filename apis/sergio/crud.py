@@ -13,3 +13,11 @@ def create_partido(db: Session, partido: schemas.PartidoCreate):
     db.commit()
     db.refresh(db_partido)
     return db_partido
+
+def delete_partido(db: Session, partido_id: int):
+    partido = db.query(models.Partido).filter(models.Partido.id == partido_id).first()
+    if partido:
+        db.delete(partido)
+        db.commit()
+    return partido
+
