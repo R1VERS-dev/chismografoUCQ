@@ -8,7 +8,7 @@ Una API web construida con FastAPI y Supabase (PostgreSQL) para consultar y admi
     
 *   **FastAPI**
     
-*   **PostgreSQL** (via Supabase)
+*   **SQLite**
     
 *   **SQLAlchemy**
     
@@ -52,11 +52,12 @@ source venv/bin/activate
 ``` 
 **3. Instalar dependencias**
 ``` 
-pip install fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv
+pip install fastapi uvicorn sqlalchemy python-dotenv requests
 ``` 
 **4. Configurar variables de entorno**
 ``` 
-DATABASE_URL=postgresql://postgres:diplomado23@db.qugotituwxmklrncrmep.supabase.co:5432/postgres
+DATABASE_URL=sqlite:///./partidos.db
+NOMINATIM_USER_AGENT=mi_app_gallos_queretaro
 ``` 
 **5. Levantar el servidor**
 ``` 
@@ -80,6 +81,8 @@ python -m uvicorn main:app --reload
 | POST   | `/partidos/`       | Crear un nuevo partido                     |
 | GET    | `/partidos/`       | Obtener lista de todos los partidos        |
 | GET    | `/partidos/{id}`   | Obtener datos de un partido por su `id`    |
+| GET    | `/partidos/{id}/estadio`   | Obtener coordenadas del estadio (latitud, longitud, nombre)    |
+| DELETE    | `/partidos/{id}`   | Eliminar un partido por su `id` (status 204 No Content)    |
 
 **Ejemplo JSON para POST**
 
@@ -89,7 +92,7 @@ python -m uvicorn main:app --reload
   "equipo_visitante": "León",
   "fecha": "2025-07-12",
   "hora": "19:00:00",
-  "estadio": "La Corregidora",
+  "estadio": "La Corregidora, Querétaro",
   "resultado": "2-1"
 }
 ```
@@ -98,11 +101,11 @@ python -m uvicorn main:app --reload
 ---------------------------
 | Archivo       | Función                                                                                               |
 |---------------|-------------------------------------------------------------------------------------------------------|
-| `.env`        | Variables de entorno (URL de conexión a Supabase)                                                     |
+| `.env`        | Variables de entorno (ruta a partidos.db, User-Agent para Nominatim)                                                     |
 | `database.py` | Inicializa el engine de SQLAlchemy y el `SessionLocal` para las sesiones de base de datos             |
 | `models.py`   | Define el modelo `Partido` (SQLAlchemy) con columnas: `id`, `equipo_local`, `equipo_visitante`, `fecha`, `hora`, `estadio`, `resultado` |
 | `schemas.py`  | Esquemas Pydantic para validación y serialización: `PartidoBase`, `PartidoCreate`, `Partido`         |
-| `crud.py`     | Funciones para “Create, Read” (crear partido, listar partidos, obtener partido por ID)               |
+| `crud.py`     | 	Funciones para “Create, Read, Update, Delete” (crear, listar, obtener, eliminar partidos)               |
 | `main.py`     | Crea la instancia de FastAPI, registra las rutas/endpoints y arranca la aplicación                    |
 
 🧪 Pruebas
