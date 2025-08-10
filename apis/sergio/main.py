@@ -1,7 +1,10 @@
 # main.py
 import os
 import requests
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 import crud, models, schemas
@@ -14,7 +17,15 @@ USER_AGENT = os.getenv("NOMINATIM_USER_AGENT", "mi_app_gallos_queretaro")
 # Crear tablas en la BD (solo la primera vez o al cambiar modelos)
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(title="Partidos Gallos Querétaro")
+
+# Static & templates setup (frontend minimalista)
+BASE_DIR = os.path.dirname(__file__)
+static_path = os.path.join(BASE_DIR, "static")
+templates_path = os.path.join(BASE_DIR, "templates")
+if os.path.isdir(static_path):
+    app.mount("/static", StaticFiles(directory=static_path), name="static")
+templates = Jinja2Templates(directory=templates_path)
 
 # Dependency para obtener sesión de DB
 def get_db():
@@ -24,9 +35,10 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/")
-def root():
-    return {"mensaje": "API de partidos Gallos de Querétaro"}
+@app.get("/", response_class=HTMLResponse)
+def ui_root(request: Request):
+    """Frontend HTML minimalista (blanco y negro)"""
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/partidos/", response_model=schemas.Partido)
 def crear_partido(partido: schemas.PartidoCreate, db: Session = Depends(get_db)):

@@ -15,7 +15,7 @@ Una API web construida con FastAPI y Supabase (PostgreSQL) para consultar y admi
 *   **Pydantic**
     
 *   **python-dotenv**
-    
+*   **Jinja2**
 
 📂 Estructura del Proyecto
 --------------------------
@@ -29,6 +29,10 @@ sergio/
 ├── schemas.py         # Esquemas Pydantic (validación de datos)
 ├── crud.py            # Funciones CRUD para la base de datos
 ├── main.py            # App de FastAPI y definición de endpoints
+├── templates/         # Plantillas HTML para el frontend
+│   └── index.html     # Página principal del frontend
+├── static/            # Archivos estáticos (CSS, JS, imágenes)
+│   └── style.css      # Estilos minimalistas blanco y negro
 └── venv/              # Entorno virtual Python
 
 ```
@@ -52,7 +56,7 @@ source venv/bin/activate
 ``` 
 **3. Instalar dependencias**
 ``` 
-pip install fastapi uvicorn sqlalchemy python-dotenv requests
+pip install fastapi uvicorn sqlalchemy python-dotenv requests jinja2
 ``` 
 **4. Configurar variables de entorno**
 ``` 
@@ -71,13 +75,14 @@ python -m uvicorn main:app --reload
 *   **Base URL**:http://127.0.0.1:8000
     
 *   **Documentación automática (Swagger UI)**:http://127.0.0.1:8000/docs
+*   **Frontend**: http://127.0.0.1:8000/
     
 
 📌 Endpoints
 ------------
 | Método | Ruta               | Descripción                                |
 |--------|--------------------|--------------------------------------------|
-| GET    | `/`                | Mensaje de bienvenida de la API            |
+| GET    | `/`                | Página principal del frontend              |
 | POST   | `/partidos/`       | Crear un nuevo partido                     |
 | GET    | `/partidos/`       | Obtener lista de todos los partidos        |
 | GET    | `/partidos/{id}`   | Obtener datos de un partido por su `id`    |
@@ -105,8 +110,10 @@ python -m uvicorn main:app --reload
 | `database.py` | Inicializa el engine de SQLAlchemy y el `SessionLocal` para las sesiones de base de datos             |
 | `models.py`   | Define el modelo `Partido` (SQLAlchemy) con columnas: `id`, `equipo_local`, `equipo_visitante`, `fecha`, `hora`, `estadio`, `resultado` |
 | `schemas.py`  | Esquemas Pydantic para validación y serialización: `PartidoBase`, `PartidoCreate`, `Partido`         |
-| `crud.py`     | 	Funciones para “Create, Read, Update, Delete” (crear, listar, obtener, eliminar partidos)               |
+| `crud.py`     |  Funciones para “Create, Read, Update, Delete” (crear, listar, obtener, eliminar partidos)               |
 | `main.py`     | Crea la instancia de FastAPI, registra las rutas/endpoints y arranca la aplicación                    |
+| `templates/index.html` | Página principal del frontend minimalista                                                    |
+| `static/style.css` | Estilos minimalistas blanco y negro para el frontend                                              |
 
 🧪 Pruebas
 ----------
@@ -114,6 +121,7 @@ python -m uvicorn main:app --reload
 Puedes probar la API con:
 
 *   **Swagger UI**: http://127.0.0.1:8000/docs 
+*   **Frontend**: http://127.0.0.1:8000/
 
 📬 Contacto
 -----------
