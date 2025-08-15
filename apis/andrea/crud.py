@@ -13,3 +13,10 @@ def create_evento(db: Session, evento: schemas.EventoCreate):
     db.commit()
     db.refresh(db_evento)
     return db_evento
+
+def delete_evento(db: Session, evento_id: int):
+    evento = db.query(models.Evento).filter(models.Evento.id == evento_id).first()
+    if evento:
+        db.delete(evento)
+        db.commit()
+    return evento

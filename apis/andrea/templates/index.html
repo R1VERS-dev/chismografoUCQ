@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Eventos Culturales Querétaro</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Eventos Culturales – Querétaro</h1>
+    <nav>
+      <button id="btn-ver">Listado</button>
+      <button id="btn-nuevo">Nuevo</button>
+    </nav>
+  </header>
+
+  <main id="vista-listado" class="vista activa">
+    <section class="panel">
+      <h2>Eventos</h2>
+      <div class="acciones-inline">
+        <input id="filtro" type="text" placeholder="Filtrar (nombre / lugar / artista)" />
+        <button id="btn-refrescar" class="sec">↻</button>
+      </div>
+      <div class="tabla-wrapper">
+        <table id="tabla-eventos" aria-describedby="Listado de eventos">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Lugar</th>
+              <th>Artista</th>
+              <th>Precio</th>
+              <th>Aforo</th>
+              <th>Mapa</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="estado" class="estado" role="status"></p>
+    </section>
+  </main>
+
+  <main id="vista-form" class="vista">
+    <section class="panel">
+      <h2>Nuevo Evento</h2>
+      <form id="form-evento" autocomplete="off">
+        <div class="grid">
+          <label>Nombre del Evento
+            <input name="nombre" required />
+          </label>
+          <label>Descripción
+            <textarea name="descripcion" placeholder="Descripción del evento"></textarea>
+          </label>
+          <label>Fecha
+            <input name="fecha" type="date" required />
+          </label>
+          <label>Hora
+            <input name="hora" type="time" required />
+          </label>
+          <label>Lugar
+            <input name="lugar" required />
+          </label>
+          <label>Artista Principal
+            <input name="artista_principal" placeholder="Nombre del artista" />
+          </label>
+          <label>Precio
+            <input name="precio" type="number" step="0.01" min="0" placeholder="0.00" required />
+          </label>
+          <label>Aforo Máximo
+            <input name="aforo_maximo" type="number" min="1" placeholder="100" required />
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit">Guardar</button>
+          <button type="button" id="btn-cancelar" class="sec">Cancelar</button>
+        </div>
+        <p id="form-msg" class="estado"></p>
+      </form>
+    </section>
+  </main>
+
+  <dialog id="dlg-mapa">
+    <article>
+      <header>
+        <h3 id="dlg-titulo">Mapa Lugar</h3>
+        <button id="dlg-cerrar" aria-label="Cerrar">×</button>
+      </header>
+      <iframe id="iframe-mapa" title="Mapa del lugar del evento" loading="lazy"></iframe>
+    </article>
+  </dialog>
+
+  <footer class="app-footer">Frontend minimalista – FastAPI</footer>
+
+  <script>
+    const API = '';
+    const tablaBody = document.querySelector('#tabla-eventos tbody');
+    const estado = document.getElementById('estado');
+    const filtro = document.getElementById('filtro');
+    const formVista = document.getElementById('vista-form');
+    const listadoVista = document.getElementById('vista-listado');
+    const btnVer = document.getElementById('btn-ver');
+    const btnNuevo = document.getElementById('btn-nuevo');
+    const form = document.getElementById('form-evento');
+    const formMsg = document.getElementById('form-msg');
+    const btnCancelar = document.getElementById('btn-cancelar');
+    const btnRefrescar = document.getElementById('btn-refrescar');
+    const dlg = document.getElementById('dlg-mapa');
+    const iframeMapa = document.getElementById('iframe-mapa');
+    const dlgTitulo = document.getElementById('dlg-titulo');
+
+    function cambiarVista(v) {
+      [formVista, listadoVista].forEach(x=>x.classList.remove('activa'));
+      v.classList.add('activa');
+    }
+
+    btnVer.onclick = () => cambiarVista(listadoVista);
+    btnNuevo.onclick = () => { form.reset(); formMsg.textContent=''; cambiarVista(formVista); };
+    btnCancelar.onclick = () => cambiarVista(listadoVista);
+
+    filtro.addEventListener('input', ()=> filtrar());
+    btnRefrescar.onclick = cargarEventos;
+
+    async function api(path, opts={}) {
+      try {
+        const r = await fetch(API + path, {headers:{'Content-Type':'application/json'}, ...opts});
+        if(!r.ok) throw new Error(await r.text());
+        if(r.status === 204) return null;
+        return await r.json();
+      } catch (e) { throw e; }
+    }
+
+    async function cargarEventos(){
+      estado.textContent = 'Cargando...';
+      try {
+        const datos = await api('/eventos/');
+        renderTabla(datos);
+        estado.textContent = datos.length ? `${datos.length} evento(s)` : 'Sin datos';
+      } catch(e){
+        estado.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    function renderTabla(datos){
+      tablaBody.innerHTML = '';
+      datos.forEach(e => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${e.id}</td>
+          <td>${e.nombre}</td>
+          <td>${e.fecha}</td>
+          <td>${e.hora}</td>
+          <td>${e.lugar}</td>
+          <td>${e.artista_principal || '-'}</td>
+          <td>$${e.precio}</td>
+          <td>${e.aforo_maximo}</td>
+          <td><button class="link" data-map="${e.id}" data-lugar="${e.lugar}">🗺️</button></td>
+          <td><button class="danger" data-del="${e.id}">✕</button></td>`;
+        tablaBody.appendChild(tr);
+      });
+    }
+
+    function filtrar(){
+      const q = filtro.value.toLowerCase();
+      [...tablaBody.rows].forEach(r => {
+        const show = [...r.cells].slice(1,8).some(c => c.textContent.toLowerCase().includes(q));
+        r.style.display = show ? '' : 'none';
+      });
+    }
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      formMsg.textContent = 'Enviando...';
+      const fd = new FormData(form);
+      const obj = Object.fromEntries(fd.entries());
+      
+      // Convertir tipos numéricos
+      if (obj.precio) obj.precio = parseFloat(obj.precio);
+      if (obj.aforo_maximo) obj.aforo_maximo = parseInt(obj.aforo_maximo);
+      
+      try {
+        await api('/eventos/', {method:'POST', body: JSON.stringify(obj)});
+        formMsg.textContent = 'Guardado';
+        setTimeout(()=> { cambiarVista(listadoVista); cargarEventos(); }, 400);
+      } catch(e){
+        formMsg.textContent = 'Error: ' + e.message;
+      }
+    });
+
+    tablaBody.addEventListener('click', async e => {
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      if(btn.dataset.del){
+        if(confirm('¿Eliminar evento #' + btn.dataset.del + '?')){
+          try { await api('/eventos/' + btn.dataset.del, {method:'DELETE'}); cargarEventos(); } catch(err){ alert('Error: ' + err.message); }
+        }
+      } else if(btn.dataset.map){
+        try {
+          const data = await api(`/eventos/${btn.dataset.map}/coordenadas`);
+          const { lat, lon } = data;
+          dlgTitulo.textContent = btn.dataset.lugar;
+          iframeMapa.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon}%2C${lat}%2C${lon}%2C${lat}&layer=mapnik&marker=${lat}%2C${lon}`;
+          if(typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open','');
+        } catch(err){ alert('Error mapa: ' + err.message); }
+      }
+    });
+
+    document.getElementById('dlg-cerrar').onclick = () => { if(dlg.open) dlg.close(); };
+
+    cargarEventos();
+  </script>
+</body>
+</html>

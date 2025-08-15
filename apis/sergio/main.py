@@ -2,6 +2,7 @@
 import os
 import requests
 from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -18,6 +19,15 @@ USER_AGENT = os.getenv("NOMINATIM_USER_AGENT", "mi_app_gallos_queretaro")
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Partidos Gallos Querétaro")
+
+# Configurar CORS para permitir comunicación con el panel central
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Static & templates setup (frontend minimalista)
 BASE_DIR = os.path.dirname(__file__)
@@ -38,6 +48,11 @@ def get_db():
 @app.get("/", response_class=HTMLResponse)
 def ui_root(request: Request):
     """Frontend HTML minimalista (blanco y negro)"""
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/web", response_class=HTMLResponse)
+def ui_web(request: Request):
+    """Frontend HTML minimalista (blanco y negro) - endpoint alternativo"""
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/partidos/", response_model=schemas.Partido)

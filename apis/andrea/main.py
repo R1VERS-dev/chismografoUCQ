@@ -1,4 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 import crud, models, schemas
 from database import SessionLocal, engine, Base
@@ -15,6 +18,18 @@ Base.metadata.create_all(bind=engine)
 # App FastAPI
 app = FastAPI(title="API Actividades Culturales Querétaro")
 
+# Configurar archivos estáticos
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Configurar CORS para permitir comunicación con el panel central
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Dependencia para sesión de base de datos
 def get_db():
     db = SessionLocal()
@@ -26,6 +41,11 @@ def get_db():
 @app.get("/")
 def root():
     return {"mensaje": "API de actividades culturales en Querétaro"}
+
+@app.get("/web", response_class=HTMLResponse)
+def web():
+    with open("templates/index.html", "r", encoding="utf-8") as file:
+        return HTMLResponse(content=file.read())
 
 @app.post("/eventos/", response_model=schemas.Evento)
 def crear_evento(evento: schemas.EventoCreate, db: Session = Depends(get_db)):
@@ -72,10 +92,7 @@ def obtener_coordenadas_evento(evento_id: int, db: Session = Depends(get_db)):
 
 @app.delete("/eventos/{evento_id}")
 def eliminar_evento(evento_id: int, db: Session = Depends(get_db)):
-    evento = crud.get_evento(db, evento_id=evento_id)
+    evento = crud.delete_evento(db, evento_id=evento_id)
     if not evento:
         raise HTTPException(status_code=404, detail="Evento no encontrado")
-    
-    db.delete(evento)
-    db.commit()
     return {"mensaje": "Evento eliminado correctamente"}

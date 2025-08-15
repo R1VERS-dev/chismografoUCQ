@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Central - Hub de APIs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #18181b;
+            min-height: 100vh;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+        }
+        .hero-section {
+            padding: 100px 0;
+            text-align: center;
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: transform 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        .btn-custom {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-custom:hover {
+            background: white;
+            color: #18181b;
+        }
+        .api-preview {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+        .btn-primary {
+            background-color: #18181b !important;
+            border-color: #18181b !important;
+        }
+        .btn-primary:hover {
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1 class="display-4 mb-4" style="font-weight: 700;">
+                <i class="fas fa-cogs"></i> Panel Central Querétaro
+            </h1>
+            <p class="lead mb-5" style="font-weight: 400;">
+                Hub centralizado para la gestión de APIs de Sergio y Andrea
+            </p>
+            <div>
+                <a href="/login" class="btn btn-custom me-3">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </a>
+                <a href="#features" class="btn btn-outline-light">
+                    <i class="fas fa-info-circle"></i> Conocer Más
+                </a>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div id="features" class="row">
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <i class="fas fa-shield-alt fa-3x mb-3"></i>
+                    <h4>Seguridad Avanzada</h4>
+                    <p>Sistema de autenticación OAuth con tokens JWT para acceso seguro a todas las APIs.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <i class="fas fa-network-wired fa-3x mb-3"></i>
+                    <h4>APIs Integradas</h4>
+                    <p>Acceso centralizado a múltiples APIs: Partidos, y Eventos Culturales.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <i class="fas fa-tachometer-alt fa-3x mb-3"></i>
+                    <h4>Panel de Control</h4>
+                    <p>Dashboard intuitivo con visualización de datos y gestión completa de recursos.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- APIs Preview -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4" style="font-weight: 600;">APIs Integradas</h2>
+            </div>
+            <div class="col-md-6">
+                <div class="api-preview">
+                    <h5 style="font-weight: 600;"><i class="fas fa-futbol text-success"></i> API Partidos Gallos Querétaro</h5>
+                    <p style="font-weight: 300;">Gestión completa de partidos de fútbol, estadios y resultados con integración geográfica.</p>
+                    <small class="text-muted">Desarrollada por Sergio</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="api-preview">
+                    <h5 style="font-weight: 600;"><i class="fas fa-calendar text-info"></i> API Eventos Culturales</h5>
+                    <p style="font-weight: 300;">Administración de eventos culturales en Querétaro con información detallada y geolocalización.</p>
+                    <small class="text-muted">Desarrollada por Andrea</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-5 py-4">
+            <p style="font-weight: 400;">&copy; 2025 Panel Central - Hub de APIs de Sergio y Andrea.</p>
+            <div class="mt-3">
+                <span class="badge bg-light text-dark me-2">FastAPI</span>
+                <span class="badge bg-light text-dark me-2">Bootstrap</span>
+                <span class="badge bg-light text-dark me-2">OAuth2</span>
+                <span class="badge bg-light text-dark me-2">Poppins Font</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Smooth scrolling para enlaces internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Verificar si ya está logueado
+        if (localStorage.getItem('access_token')) {
+            window.location.href = '/dashboard';
+        }
+    </script>
+</body>
+</html>
